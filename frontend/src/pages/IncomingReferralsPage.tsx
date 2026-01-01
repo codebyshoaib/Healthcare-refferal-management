@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Badge } from "../components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { CheckIcon, Loader2, XIcon } from "lucide-react";
 
 function StatusBadge({ status }: { status: Referral["status"] }) {
   const cls =
@@ -133,7 +133,7 @@ export default function IncomingReferralsPage() {
                 <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {incomingReferrals.length === 0 && (
                   <p className="text-sm text-muted-foreground">
                     No incoming referrals
@@ -145,10 +145,38 @@ export default function IncomingReferralsPage() {
                   const isPending = r.status === "pending";
 
                   return (
-                    <div key={r.id} className="p-4 rounded-lg border shadow-sm">
-                      <h5 className="text-lg font-semibold text-gray-800">
-                        {r.patient_name}
-                      </h5>
+                    <div
+                      key={r.id}
+                      className="p-4 rounded-lg border shadow-sm h-full flex flex-col  gap-2"
+                    >
+                      <div className="flex flex-row justify-between gap-2">
+                        <h5 className="text-lg font-semibold text-gray-800">
+                          {r.patient_name}
+                        </h5>
+                        {isPending && (
+                          <div className="flex gap-2">
+                            <Button
+                              variant="default"
+                              onClick={() => onAccept(r.id)}
+                              disabled={loading}
+                              className="text-xs p-3"
+                            >
+                              <CheckIcon className="w-4 h-4" />
+                              Accept
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              onClick={() => onReject(r.id)}
+                              disabled={loading}
+                              className="text-xs p-3"
+                            >
+                              <XIcon className="w-4 h-4" />
+                              Reject
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+
                       <p className="text-sm text-muted-foreground">
                         Sender: {senderName}
                       </p>
@@ -160,25 +188,6 @@ export default function IncomingReferralsPage() {
                         <p className="text-sm text-muted-foreground">
                           Additional Notes: {r.notes}
                         </p>
-                      )}
-
-                      {isPending && (
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            variant="default"
-                            onClick={() => onAccept(r.id)}
-                            disabled={loading}
-                          >
-                            Accept
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            onClick={() => onReject(r.id)}
-                            disabled={loading}
-                          >
-                            Reject
-                          </Button>
-                        </div>
                       )}
                     </div>
                   );
