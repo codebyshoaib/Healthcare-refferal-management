@@ -17,6 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import { X } from "lucide-react";
 
 const ORG_TYPES = [
   "clinic",
@@ -101,9 +102,7 @@ export default function OrganizationsPage() {
         ...(email.trim() ? { email: email.trim() } : {}),
         ...(phone.trim() ? { phone: phone.trim() } : {}),
       },
-      coverage_areas: cleanedCoverage.length
-        ? (cleanedCoverage as any)
-        : undefined,
+      coverage_areas: cleanedCoverage.length ? cleanedCoverage : undefined,
     });
 
     if (created) {
@@ -157,9 +156,7 @@ export default function OrganizationsPage() {
                 <Input
                   id="name"
                   value={name}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setName(e.target.value)
-                  }
+                  onChange={(e) => setName(e.target.value)}
                   required
                   placeholder="Organization name"
                 />
@@ -289,7 +286,7 @@ export default function OrganizationsPage() {
                         onClick={() => removeCoverageRow(idx)}
                         disabled={coverage.length === 1}
                       >
-                        ✕
+                        <X className="w-4 h-4" />
                       </Button>
                     </div>
                   ))}

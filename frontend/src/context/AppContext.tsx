@@ -79,7 +79,7 @@ type AppContextValue = {
       email?: string;
       phone?: string;
     };
-    coverage_areas?: CoverageArea[];
+    coverage_areas?: CoverageAreaInput[];
   }) => Promise<Organization | null>;
   updateCoverageAreas: (
     id: string,
@@ -166,7 +166,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         email?: string;
         phone?: string;
       };
-      coverage_areas?: CoverageArea[];
+      coverage_areas?: CoverageAreaInput[];
     }): Promise<Organization | null> => {
       const created = await withLoading(async () => {
         const res = await createOrganizationAPI(data);
@@ -222,7 +222,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       notes?: string | null;
     }): Promise<Referral | null> => {
       const created = await withLoading(async () => {
-        const res = await createReferralAPI(data);
+        const res = await createReferralAPI({
+          ...data,
+          notes: data.notes || undefined,
+        });
         return res?.data as Referral;
       });
       if (created) {
