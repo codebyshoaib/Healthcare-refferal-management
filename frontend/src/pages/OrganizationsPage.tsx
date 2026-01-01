@@ -38,8 +38,8 @@ export default function OrganizationsPage() {
     createOrganization,
   } = useAppContext();
 
-  const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
-  const [roleFilter, setRoleFilter] = useState<string | undefined>(undefined);
+  const [typeFilter, setTypeFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
 
   const [name, setName] = useState("");
   const [type, setType] = useState("clinic");
@@ -75,8 +75,8 @@ export default function OrganizationsPage() {
   };
 
   const clearFilters = async () => {
-    setTypeFilter(undefined);
-    setRoleFilter(undefined);
+    setTypeFilter("");
+    setRoleFilter("");
     await fetchOrganizations();
   };
 
@@ -316,7 +316,7 @@ export default function OrganizationsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <Select
                   value={typeFilter || undefined}
-                  onValueChange={(value) => setTypeFilter(value || undefined)}
+                  onValueChange={setTypeFilter}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Types" />
@@ -332,7 +332,7 @@ export default function OrganizationsPage() {
 
                 <Select
                   value={roleFilter || undefined}
-                  onValueChange={(value) => setRoleFilter(value || undefined)}
+                  onValueChange={setRoleFilter}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="All Roles" />
