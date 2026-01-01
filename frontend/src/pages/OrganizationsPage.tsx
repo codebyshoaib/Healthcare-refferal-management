@@ -90,13 +90,6 @@ export default function OrganizationsPage() {
   const updateCoverageRow = (idx: number, patch: Partial<CoverageAreaInput>) =>
     setCoverage((p) => p.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
 
-  const applyFilters = async () => {
-    if (organizations.length === 0) {
-      await fetchOrganizations();
-    }
-    setCurrentPage(1);
-  };
-
   const clearFilters = async () => {
     setTypeFilter("");
     setRoleFilter("");
