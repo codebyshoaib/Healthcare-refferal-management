@@ -48,7 +48,6 @@ export async function createReferral(req: Request, res: Response) {
         .json({ error: "Sender organization cannot send referrals" });
     }
 
-    // Check receiver organization exists and can receive
     const receiverCheck = await client.query(
       `SELECT role FROM organizations WHERE id = $1`,
       [receiver_org_id]
@@ -134,7 +133,6 @@ export async function updateReferralStatus(req: Request, res: Response) {
   try {
     await client.query("BEGIN");
 
-    // Check if referral exists and is pending
     const referralCheck = await client.query(
       `SELECT * FROM referrals WHERE id = $1`,
       [id]
@@ -152,7 +150,6 @@ export async function updateReferralStatus(req: Request, res: Response) {
       });
     }
 
-    // Update status
     const updateResult = await client.query(
       `UPDATE referrals SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
       [status, id]

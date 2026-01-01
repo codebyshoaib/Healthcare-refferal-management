@@ -46,7 +46,8 @@ export async function createOrganization(req: Request, res: Response) {
     return res.status(201).json(org);
   } catch (err) {
     await client.query("ROLLBACK");
-    throw err;
+    console.error("Error creating organization:", err);
+    return res.status(500).json({ error: "Failed to create organization" });
   } finally {
     client.release();
   }
@@ -131,7 +132,8 @@ export async function upsertCoverage(req: Request, res: Response) {
     res.json({ ok: true });
   } catch (err) {
     await client.query("ROLLBACK");
-    throw err;
+    console.error("Error upserting coverage:", err);
+    return res.status(500).json({ error: "Failed to upsert coverage" });
   } finally {
     client.release();
   }
