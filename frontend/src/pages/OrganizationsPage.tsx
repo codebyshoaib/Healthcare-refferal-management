@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState, useMemo } from "react";
 import { useAppContext, type CoverageAreaInput } from "../context/AppContext";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { Button } from "../components/ui/button";
@@ -17,7 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { X } from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 const ORG_TYPES = [
   "clinic",
@@ -41,6 +41,8 @@ export default function OrganizationsPage() {
 
   const [typeFilter, setTypeFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 4;
 
   const [name, setName] = useState("");
   const [type, setType] = useState("clinic");
@@ -51,6 +53,26 @@ export default function OrganizationsPage() {
   const [coverage, setCoverage] = useState<CoverageAreaInput[]>([
     { state: "CA", county: "", city: "", zip_code: "" },
   ]);
+
+  const filteredOrganizations = useMemo(() => {
+    return organizations.filter((org) => {
+      const matchesType = !typeFilter || org.type === typeFilter;
+      const matchesRole = !roleFilter || org.role === roleFilter;
+      return matchesType && matchesRole;
+    });
+  }, [organizations, typeFilter, roleFilter]);
+
+  const totalPages = Math.ceil(filteredOrganizations.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedOrganizations = useMemo(
+    () => filteredOrganizations.slice(startIndex, endIndex),
+    [filteredOrganizations, startIndex, endIndex]
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [typeFilter, roleFilter]);
 
   useEffect(() => {
     fetchOrganizations();
@@ -69,16 +91,19 @@ export default function OrganizationsPage() {
     setCoverage((p) => p.map((c, i) => (i === idx ? { ...c, ...patch } : c)));
 
   const applyFilters = async () => {
-    const filters: any = {};
-    if (typeFilter) filters.type = typeFilter;
-    if (roleFilter) filters.role = roleFilter;
-    await fetchOrganizations(filters);
+    if (organizations.length === 0) {
+      await fetchOrganizations();
+    }
+    setCurrentPage(1);
   };
 
   const clearFilters = async () => {
     setTypeFilter("");
     setRoleFilter("");
-    await fetchOrganizations();
+    setCurrentPage(1);
+    if (organizations.length === 0) {
+      await fetchOrganizations();
+    }
   };
 
   const onSubmit = async (e: FormEvent) => {
@@ -138,8 +163,7 @@ export default function OrganizationsPage() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Create */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Create Organization</CardTitle>
@@ -162,7 +186,7 @@ export default function OrganizationsPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col justify-between gap-4">
                 <div className="space-y-2">
                   <label htmlFor="type" className="text-sm font-medium">
                     Type
@@ -200,7 +224,7 @@ export default function OrganizationsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col justify-between gap-4">
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium">
                     Email
@@ -310,7 +334,7 @@ export default function OrganizationsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-row justify-between gap-3">
                 <Select
                   value={typeFilter || undefined}
                   onValueChange={setTypeFilter}
@@ -342,26 +366,17 @@ export default function OrganizationsPage() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  onClick={applyFilters}
-                  disabled={loading}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  Apply Filters
-                </Button>
-                {(typeFilter || roleFilter) && (
-                  <Button
-                    onClick={clearFilters}
-                    disabled={loading}
-                    variant="outline"
-                  >
-                    Clear
-                  </Button>
-                )}
+                <div className="flex gap-2">
+                  {(typeFilter || roleFilter) && (
+                    <Button
+                      onClick={clearFilters}
+                      disabled={loading}
+                      variant="outline"
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {loading && organizations.length === 0 ? (
@@ -369,39 +384,115 @@ export default function OrganizationsPage() {
                   Loading...
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {organizations.map((o) => (
-                    <Card
-                      key={o.id}
-                      className="hover:shadow-md transition-shadow"
-                    >
-                      <CardContent className="pt-6">
-                        <div className="flex justify-between items-start mb-2">
-                          <strong className="text-lg">{o.name}</strong>
-                          <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded">
-                            {o.type} • {o.role}
-                          </span>
-                        </div>
-                        {(o.contact_info?.email || o.contact_info?.phone) && (
-                          <div className="text-sm text-muted-foreground mb-2 flex flex-col">
-                            {o.contact_info?.email && (
-                              <span>Email: {o.contact_info.email}</span>
-                            )}
-
-                            {o.contact_info?.phone && (
-                              <span>Phone: {o.contact_info.phone}</span>
-                            )}
+                <>
+                  <div className="space-y-3">
+                    {paginatedOrganizations.map((o) => (
+                      <Card
+                        key={o.id}
+                        className="hover:shadow-md transition-shadow"
+                      >
+                        <CardContent className="pt-6">
+                          <div className="flex justify-between items-start mb-2">
+                            <strong className="text-lg">{o.name}</strong>
+                            <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded">
+                              {o.type} • {o.role}
+                            </span>
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {organizations.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No organizations found.
+                          {(o.contact_info?.email || o.contact_info?.phone) && (
+                            <div className="text-sm text-muted-foreground mb-2 flex flex-col">
+                              {o.contact_info?.email && (
+                                <span>Email: {o.contact_info.email}</span>
+                              )}
+
+                              {o.contact_info?.phone && (
+                                <span>Phone: {o.contact_info.phone}</span>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                    {filteredOrganizations.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No organizations found.
+                      </div>
+                    )}
+                  </div>
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4 border-t">
+                      <div className="text-sm text-muted-foreground">
+                        Showing {startIndex + 1}-
+                        {Math.min(endIndex, filteredOrganizations.length)} of{" "}
+                        {filteredOrganizations.length} organizations
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setCurrentPage((p) => Math.max(1, p - 1))
+                          }
+                          disabled={currentPage === 1 || loading}
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          Previous
+                        </Button>
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter((page) => {
+                              return (
+                                page === 1 ||
+                                page === totalPages ||
+                                (page >= currentPage - 1 &&
+                                  page <= currentPage + 1)
+                              );
+                            })
+                            .map((page, idx, arr) => {
+                              const prevPage = arr[idx - 1];
+                              const showEllipsis =
+                                prevPage && page - prevPage > 1;
+                              return (
+                                <div
+                                  key={page}
+                                  className="flex items-center gap-1"
+                                >
+                                  {showEllipsis && (
+                                    <span className="px-2 text-muted-foreground">
+                                      ...
+                                    </span>
+                                  )}
+                                  <Button
+                                    variant={
+                                      currentPage === page
+                                        ? "default"
+                                        : "outline"
+                                    }
+                                    size="sm"
+                                    onClick={() => setCurrentPage(page)}
+                                    disabled={loading}
+                                    className="min-w-[2.5rem]"
+                                  >
+                                    {page}
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setCurrentPage((p) => Math.min(totalPages, p + 1))
+                          }
+                          disabled={currentPage === totalPages || loading}
+                        >
+                          Next
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           </CardContent>
