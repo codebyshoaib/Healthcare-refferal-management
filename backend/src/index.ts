@@ -2,9 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 
-import organizationsRoutes from "./routes/organizations.routes";
-import referralsRoutes from "./routes/referrals.routes";
-import { auth } from "./middleware/auth";
+import organizationsRoutes from "./routes/organizations.routes.js";
+import referralsRoutes from "./routes/referrals.routes.js";
+import { auth } from "./middleware/auth.js";
 
 dotenv.config();
 

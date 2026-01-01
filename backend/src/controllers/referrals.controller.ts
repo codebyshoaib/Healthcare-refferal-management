@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import pool from "../config/database";
+import pool from "../config/database.js";
 import {
   createReferralSchema,
   updateReferralSchema,
-} from "../validators/referrals.schema";
+} from "../validators/referrals.schema.js";
 
 export async function createReferral(req: Request, res: Response) {
   if (!req.body || Object.keys(req.body).length === 0) {

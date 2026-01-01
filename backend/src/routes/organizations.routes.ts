@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   createOrganization,
   listOrganizations,
   getOrganization,
   upsertCoverage,
-} from "../controllers/organizations.controller";
+} from "../controllers/organizations.controller.js";
 
 const router: Router = Router();
 

@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import pool from "../config/database";
+import pool from "../config/database.js";
 import {
   createOrganizationSchema,
   upsertCoverageSchema,
-} from "../validators/organizations.schema";
+} from "../validators/organizations.schema.js";
 
 export async function createOrganization(req: Request, res: Response) {
   if (!req.body || Object.keys(req.body).length === 0) {
