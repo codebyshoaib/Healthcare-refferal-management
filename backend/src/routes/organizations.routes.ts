@@ -7,7 +7,7 @@ import {
   upsertCoverage,
 } from "../controllers/organizations.controller";
 
-const router = Router();
+const router: Router = Router();
 
 router.post("/", asyncHandler(createOrganization));
 router.get("/", asyncHandler(listOrganizations));

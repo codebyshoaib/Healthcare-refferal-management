@@ -6,6 +6,13 @@ import {
 } from "../validators/organizations.schema";
 
 export async function createOrganization(req: Request, res: Response) {
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(400).json({
+      error:
+        "Request body is empty or not parsed. Make sure Content-Type is application/json",
+    });
+  }
+
   const parsed = createOrganizationSchema.safeParse(req.body);
   if (!parsed.success)
     return res.status(400).json({ error: parsed.error.flatten() });
@@ -88,7 +95,7 @@ export async function getOrganization(req: Request, res: Response) {
 }
 
 export async function upsertCoverage(req: Request, res: Response) {
-  const id = Number(req.params.id);
+  const id = req.params.id;
   if (!id) return res.status(400).json({ error: "Invalid id" });
 
   const parsed = upsertCoverageSchema.safeParse(req.body);
