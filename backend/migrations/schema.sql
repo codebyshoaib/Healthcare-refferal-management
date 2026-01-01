@@ -1,5 +1,5 @@
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TYPE organization_type AS ENUM ('clinic', 'pharmacy', 'home_health', 'nursing_home', 'transportation', 'dme');
 CREATE TYPE organization_role AS ENUM ('sender', 'receiver', 'both');
