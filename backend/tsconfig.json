@@ -17,7 +17,7 @@
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
   },
-  "include": ["src/**/*", "*.ts"],
+  "include": ["src/**/*", "*.ts", "middleware/middleware.ts"],
   "exclude": ["node_modules", "dist"]
 }
 
