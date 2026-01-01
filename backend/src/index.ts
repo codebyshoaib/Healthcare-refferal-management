@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import organizationsRoutes from "./routes/organizations.routes";
+import referralsRoutes from "./routes/referrals.routes";
 import { auth } from "./middleware/auth";
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/", auth);
 app.use("/api/organizations", organizationsRoutes);
+app.use("/api/referrals", referralsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` });
