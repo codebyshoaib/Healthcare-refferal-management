@@ -13,7 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { Loader2, Table2, LayoutGrid, Mail, Phone } from "lucide-react";
+import {
+  Loader2,
+  Table2,
+  LayoutGrid,
+  Mail,
+  Phone,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import {
   Card,
@@ -57,6 +65,8 @@ export default function CoveragePage() {
   const [cityFilter, setCityFilter] = useState("");
   const [zipCodeFilter, setZipCodeFilter] = useState("");
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [details, setDetails] = useState<
     Record<string, OrganizationWithCoverageAreas>
@@ -134,8 +144,6 @@ export default function CoveragePage() {
 
     return rows.filter((r) => {
       const a = r.area;
-
-      // Exact match for state dropdown, partial match for text inputs
       const okState = !s || (a.state || "").toLowerCase() === s;
       const okCounty = !co || (a.county || "").toLowerCase().includes(co);
       const okCity = !ci || (a.city || "").toLowerCase().includes(ci);
@@ -145,11 +153,24 @@ export default function CoveragePage() {
     });
   }, [rows, stateFilter, countyFilter, cityFilter, zipCodeFilter]);
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedFiltered = useMemo(
+    () => filtered.slice(startIndex, endIndex),
+    [filtered, startIndex, endIndex]
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [stateFilter, countyFilter, cityFilter, zipCodeFilter]);
+
   const clearFilters = () => {
     setStateFilter(undefined);
     setCountyFilter("");
     setCityFilter("");
     setZipCodeFilter("");
+    setCurrentPage(1);
   };
 
   const uniqueStates = useMemo(() => {
@@ -242,39 +263,41 @@ export default function CoveragePage() {
                 Clear Filters
               </Button>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">View:</span>
-              <div className="flex border rounded-md">
-                <Button
-                  variant={viewMode === "table" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("table")}
-                  className="rounded-r-none"
-                >
-                  <Table2 className="w-4 h-4 mr-2" />
-                  Table
-                </Button>
-                <Button
-                  variant={viewMode === "cards" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("cards")}
-                  className="rounded-l-none"
-                >
-                  <LayoutGrid className="w-4 h-4 mr-2" />
-                  Cards
-                </Button>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
       <Card>
-        <CardHeader>
-          <CardTitle>Coverage Areas</CardTitle>
-          <CardDescription>
-            Showing <b>{filtered.length}</b> of <b>{rows.length}</b> coverage
-            entries
-          </CardDescription>
+        <CardHeader className="flex flex-row justify-between gap-2">
+          <div className="flex flex-col gap-2">
+            <CardTitle>Coverage Areas</CardTitle>
+            <CardDescription>
+              Showing <b>{paginatedFiltered.length}</b> of <b>{rows.length}</b>{" "}
+              coverage entries
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">View:</span>
+            <div className="flex border rounded-md">
+              <Button
+                variant={viewMode === "table" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("table")}
+                className="rounded-r-none"
+              >
+                <Table2 className="w-4 h-4 mr-2" />
+                Table
+              </Button>
+              <Button
+                variant={viewMode === "cards" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("cards")}
+                className="rounded-l-none"
+              >
+                <LayoutGrid className="w-4 h-4 mr-2" />
+                Cards
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {showSpinner ? (
@@ -291,164 +314,302 @@ export default function CoveragePage() {
               </p>
             </div>
           ) : viewMode === "table" ? (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    <TableHead className="font-semibold">
-                      Organization
-                    </TableHead>
-                    <TableHead className="font-semibold">Type</TableHead>
-                    <TableHead className="font-semibold">Role</TableHead>
-                    <TableHead className="font-semibold">State</TableHead>
-                    <TableHead className="font-semibold">County</TableHead>
-                    <TableHead className="font-semibold">City</TableHead>
-                    <TableHead className="font-semibold">Zip Code</TableHead>
-                    <TableHead className="font-semibold">Contact</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((r, idx) => (
-                    <TableRow
-                      key={`${r.orgId}-${r.area.zip_code}-${idx}`}
-                      className="hover:bg-muted/50"
-                    >
-                      <TableCell className="font-medium p-8">
-                        {r.orgName}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-muted-foreground">
-                          {r.orgType}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-muted-foreground">
-                          {r.orgRole}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-muted-foreground">
-                          {r.area.state || "-"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-muted-foreground">
-                          {r.area.county || "-"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-muted-foreground">
-                          {r.area.city || "-"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-muted-foreground font-mono text-xs">
-                          {r.area.zip_code || "-"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1.5 min-w-[150px]">
-                          {r.email && (
-                            <div className="flex items-center gap-2 text-xs">
-                              <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-                              <span className="text-muted-foreground truncate">
-                                {r.email}
-                              </span>
-                            </div>
-                          )}
-                          {r.phone && (
-                            <div className="flex items-center gap-2 text-xs">
-                              <Phone className="w-3.5 h-3.5 text-muted-foreground" />
-                              <span className="text-muted-foreground">
-                                {r.phone}
-                              </span>
-                            </div>
-                          )}
-                          {!r.email && !r.phone && (
-                            <span className="text-muted-foreground text-xs">
-                              -
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
+            <>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                      <TableHead className="font-semibold">
+                        Organization
+                      </TableHead>
+                      <TableHead className="font-semibold">Type</TableHead>
+                      <TableHead className="font-semibold">Role</TableHead>
+                      <TableHead className="font-semibold">State</TableHead>
+                      <TableHead className="font-semibold">County</TableHead>
+                      <TableHead className="font-semibold">City</TableHead>
+                      <TableHead className="font-semibold">Zip Code</TableHead>
+                      <TableHead className="font-semibold">Contact</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map((r, idx) => (
-                <Card
-                  key={`${r.orgId}-${r.area.zip_code}-${idx}`}
-                  className="hover:shadow-md transition-shadow"
-                >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">{r.orgName}</CardTitle>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {statusBadge(r.orgType)}
-                      {statusBadge(r.orgRole)}
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedFiltered.map((r, idx) => (
+                      <TableRow
+                        key={`${r.orgId}-${r.area.zip_code}-${idx}`}
+                        className="hover:bg-muted/50"
+                      >
+                        <TableCell className="font-medium p-8">
+                          {r.orgName}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-muted-foreground">
+                            {r.orgType}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-muted-foreground">
+                            {r.orgRole}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-muted-foreground">
+                            {r.area.state || "-"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-muted-foreground">
+                            {r.area.county || "-"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-muted-foreground">
+                            {r.area.city || "-"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-muted-foreground font-mono text-xs">
+                            {r.area.zip_code || "-"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1.5 min-w-[150px]">
+                            {r.email && (
+                              <div className="flex items-center gap-2 text-xs">
+                                <Mail className="w-3.5 h-3.5 text-muted-foreground" />
+                                <span className="text-muted-foreground truncate">
+                                  {r.email}
+                                </span>
+                              </div>
+                            )}
+                            {r.phone && (
+                              <div className="flex items-center gap-2 text-xs">
+                                <Phone className="w-3.5 h-3.5 text-muted-foreground" />
+                                <span className="text-muted-foreground">
+                                  {r.phone}
+                                </span>
+                              </div>
+                            )}
+                            {!r.email && !r.phone && (
+                              <span className="text-muted-foreground text-xs">
+                                -
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t mt-4">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {startIndex + 1}-
+                    {Math.min(endIndex, filtered.length)} of {filtered.length}{" "}
+                    entries
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1 || loading || detailsLoading}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter((page) => {
+                          return (
+                            page === 1 ||
+                            page === totalPages ||
+                            (page >= currentPage - 1 && page <= currentPage + 1)
+                          );
+                        })
+                        .map((page, idx, arr) => {
+                          const prevPage = arr[idx - 1];
+                          const showEllipsis = prevPage && page - prevPage > 1;
+                          return (
+                            <div key={page} className="flex items-center gap-1">
+                              {showEllipsis && (
+                                <span className="px-2 text-muted-foreground">
+                                  ...
+                                </span>
+                              )}
+                              <Button
+                                variant={
+                                  currentPage === page ? "default" : "outline"
+                                }
+                                size="sm"
+                                onClick={() => setCurrentPage(page)}
+                                disabled={loading || detailsLoading}
+                                className="min-w-[2.5rem]"
+                              >
+                                {page}
+                              </Button>
+                            </div>
+                          );
+                        })}
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div>
-                      <div className="text-xs font-medium text-muted-foreground mb-1">
-                        Coverage Area
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={
+                        currentPage === totalPages || loading || detailsLoading
+                      }
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {paginatedFiltered.map((r, idx) => (
+                  <Card
+                    key={`${r.orgId}-${r.area.zip_code}-${idx}`}
+                    className="hover:shadow-md transition-shadow"
+                  >
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">{r.orgName}</CardTitle>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {statusBadge(r.orgType)}
+                        {statusBadge(r.orgRole)}
                       </div>
-                      <div className="text-sm">
-                        {r.area.state && (
-                          <span className="font-medium">{r.area.state}</span>
-                        )}
-                        {r.area.county && (
-                          <span className="text-muted-foreground">
-                            {r.area.state ? ", " : ""}
-                            {r.area.county}
-                          </span>
-                        )}
-                        {r.area.city && (
-                          <span className="text-muted-foreground">
-                            {r.area.state || r.area.county ? ", " : ""}
-                            {r.area.city}
-                          </span>
-                        )}
-                        {r.area.zip_code && (
-                          <span className="text-muted-foreground">
-                            {" "}
-                            ({r.area.zip_code})
-                          </span>
-                        )}
-                        {!r.area.state &&
-                          !r.area.county &&
-                          !r.area.city &&
-                          !r.area.zip_code && (
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div>
+                        <div className="text-xs font-medium text-muted-foreground mb-1">
+                          Coverage Area
+                        </div>
+                        <div className="text-sm">
+                          {r.area.state && (
+                            <span className="font-medium">{r.area.state}</span>
+                          )}
+                          {r.area.county && (
                             <span className="text-muted-foreground">
-                              No location specified
+                              {r.area.state ? ", " : ""}
+                              {r.area.county}
                             </span>
                           )}
-                      </div>
-                    </div>
-                    {(r.email || r.phone) && (
-                      <div>
-                        <div className="text-sm space-y-1">
-                          {r.email && (
-                            <div className="text-muted-foreground flex items-center">
-                              <Mail className="w-4 h-4 mr-2" />
-                              {r.email}
-                            </div>
+                          {r.area.city && (
+                            <span className="text-muted-foreground">
+                              {r.area.state || r.area.county ? ", " : ""}
+                              {r.area.city}
+                            </span>
                           )}
-                          {r.phone && (
-                            <div className="text-muted-foreground flex items-center">
-                              <Phone className="w-4 h-4 mr-2" />
-                              {r.phone}
-                            </div>
+                          {r.area.zip_code && (
+                            <span className="text-muted-foreground">
+                              {" "}
+                              ({r.area.zip_code})
+                            </span>
                           )}
+                          {!r.area.state &&
+                            !r.area.county &&
+                            !r.area.city &&
+                            !r.area.zip_code && (
+                              <span className="text-muted-foreground">
+                                No location specified
+                              </span>
+                            )}
                         </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      {(r.email || r.phone) && (
+                        <div>
+                          <div className="text-sm space-y-1">
+                            {r.email && (
+                              <div className="text-muted-foreground flex items-center">
+                                <Mail className="w-4 h-4 mr-2" />
+                                {r.email}
+                              </div>
+                            )}
+                            {r.phone && (
+                              <div className="text-muted-foreground flex items-center">
+                                <Phone className="w-4 h-4 mr-2" />
+                                {r.phone}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between pt-4 border-t mt-4">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {startIndex + 1}-
+                    {Math.min(endIndex, filtered.length)} of {filtered.length}{" "}
+                    entries
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1 || loading || detailsLoading}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter((page) => {
+                          return (
+                            page === 1 ||
+                            page === totalPages ||
+                            (page >= currentPage - 1 && page <= currentPage + 1)
+                          );
+                        })
+                        .map((page, idx, arr) => {
+                          const prevPage = arr[idx - 1];
+                          const showEllipsis = prevPage && page - prevPage > 1;
+                          return (
+                            <div key={page} className="flex items-center gap-1">
+                              {showEllipsis && (
+                                <span className="px-2 text-muted-foreground">
+                                  ...
+                                </span>
+                              )}
+                              <Button
+                                variant={
+                                  currentPage === page ? "default" : "outline"
+                                }
+                                size="sm"
+                                onClick={() => setCurrentPage(page)}
+                                disabled={loading || detailsLoading}
+                                className="min-w-[2.5rem]"
+                              >
+                                {page}
+                              </Button>
+                            </div>
+                          );
+                        })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={
+                        currentPage === totalPages || loading || detailsLoading
+                      }
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
