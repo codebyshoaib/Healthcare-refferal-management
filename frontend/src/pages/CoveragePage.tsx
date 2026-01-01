@@ -259,7 +259,11 @@ export default function CoveragePage() {
 
           <div className="flex items-center justify-between">
             <div className="flex gap-2">
-              <Button variant="secondary" onClick={clearFilters}>
+              <Button
+                variant="secondary"
+                onClick={clearFilters}
+                className="p-5"
+              >
                 Clear Filters
               </Button>
             </div>

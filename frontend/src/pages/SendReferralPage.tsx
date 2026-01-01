@@ -172,7 +172,17 @@ export default function SendReferralPage() {
               placeholder="Any additonal notes"
             />
           </div>
-          <Button type="submit" disabled={loading}>
+          <Button
+            type="submit"
+            disabled={
+              loading ||
+              !senderOrgId ||
+              !receiverOrgId ||
+              !patientName ||
+              !insuranceNumber
+            }
+            className="p-5"
+          >
             {loading ? "Sending..." : "Send Referral"}
           </Button>
         </div>

@@ -320,7 +320,7 @@ export default function OrganizationsPage() {
               <Button
                 type="submit"
                 disabled={loading || !name.trim()}
-                className="w-full"
+                className="w-full p-5"
               >
                 {loading ? "Saving..." : "Create Organization"}
               </Button>
