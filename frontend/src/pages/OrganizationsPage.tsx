@@ -383,21 +383,16 @@ export default function OrganizationsPage() {
                           </span>
                         </div>
                         {(o.contact_info?.email || o.contact_info?.phone) && (
-                          <div className="text-sm text-muted-foreground mb-2">
+                          <div className="text-sm text-muted-foreground mb-2 flex flex-col">
                             {o.contact_info?.email && (
                               <span>Email: {o.contact_info.email}</span>
                             )}
-                            {o.contact_info?.email && o.contact_info?.phone && (
-                              <span className="mx-2">•</span>
-                            )}
+
                             {o.contact_info?.phone && (
                               <span>Phone: {o.contact_info.phone}</span>
                             )}
                           </div>
                         )}
-                        <div className="text-xs text-muted-foreground mt-2 font-mono">
-                          {o.id}
-                        </div>
                       </CardContent>
                     </Card>
                   ))}
