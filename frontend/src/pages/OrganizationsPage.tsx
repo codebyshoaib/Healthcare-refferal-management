@@ -17,7 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { X, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
 const ORG_TYPES = [
   "clinic",
@@ -373,8 +373,8 @@ export default function OrganizationsPage() {
               </div>
 
               {loading && organizations.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Loading...
+                <div className="flex justify-center items-center h-full">
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 </div>
               ) : (
                 <>
