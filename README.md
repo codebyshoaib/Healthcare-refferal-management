@@ -2,10 +2,11 @@
 
 A simple full-stack application for managing healthcare referrals between organizations. This system allows healthcare providers to register organizations, define coverage areas, create referrals, and manage incoming referral requests.
 
-## Live URL
+## Live Deployement
 
 - **Frontend Vercel**: https://healthcare-refferal-management.vercel.app/
 - **Backend + MCP Railway**: https://healthcare-refferal-management-production.up.railway.app/
+- **Database**: Database is currently hosted on Supabase
 
 ## Features
 
