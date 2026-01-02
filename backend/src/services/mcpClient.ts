@@ -24,14 +24,23 @@ async function ensureMcpProcess(): Promise<ChildProcess> {
       initialized = false;
     }
   }
+
   const possiblePaths = [
+    path.join(__dirname, "../../mcp-server"),
     path.join(__dirname, "../mcp-server"),
     path.join(__dirname, "../../../mcp-server"),
   ];
 
   let mcpServerDir: string | null = null;
+  console.log(`[MCP Client] Looking for MCP server. __dirname: ${__dirname}`);
   for (const possiblePath of possiblePaths) {
-    if (existsSync(possiblePath)) {
+    const exists = existsSync(possiblePath);
+    console.log(
+      `[MCP Client] Checking path: ${possiblePath} - ${
+        exists ? "EXISTS" : "NOT FOUND"
+      }`
+    );
+    if (exists) {
       mcpServerDir = possiblePath;
       break;
     }
