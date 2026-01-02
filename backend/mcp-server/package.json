@@ -1,7 +1,8 @@
 {
-  "name": "mcp-server",
+  "name": "Healthcare Referral Management System MCP Server",
   "version": "1.0.0",
-  "description": "",
+  "description": "A simple MCP server for managing healthcare referrals between organizations.",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "test": "node test-server.js",
