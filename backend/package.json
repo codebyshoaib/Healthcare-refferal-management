@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "build:railway": "node copy-mcp-server.js && cd mcp-server && pnpm install && pnpm build && cd .. && tsc",
+    "build:railway": "cd mcp-server && pnpm install && pnpm build && cd .. && tsc",
     "start": "node dist/index.js",
     "dev": "nodemon --exec tsx src/index.ts",
     "test:db": "tsx test_connection.ts",

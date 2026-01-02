@@ -8,12 +8,21 @@ const __dirname = path.dirname(__filename);
 const sourceDir = path.join(__dirname, "../mcp-server");
 const targetDir = path.join(__dirname, "mcp-server");
 
-console.log("Copying mcp-server to backend/mcp-server...");
-
 if (fs.existsSync(targetDir)) {
-    console.log("Removing existing backend/mcp-server...");
-    fs.rmSync(targetDir, { recursive: true, force: true });
+    console.log("mcp-server already exists in backend/mcp-server, skipping copy");
+    process.exit(0);
 }
+
+if (!fs.existsSync(sourceDir)) {
+    console.error(`❌ ERROR: Source directory does not exist: ${sourceDir}`);
+    console.error("This usually means Railway root is set to 'backend/' and can't access '../mcp-server'");
+    console.error("Solution: Move mcp-server/ into backend/ directory before deploying");
+    process.exit(1);
+}
+
+console.log("Copying mcp-server to backend/mcp-server...");
+console.log(`Source: ${sourceDir}`);
+console.log(`Target: ${targetDir}`);
 
 function copyRecursiveSync(src, dest) {
     const exists = fs.existsSync(src);

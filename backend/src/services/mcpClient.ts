@@ -27,7 +27,6 @@ async function ensureMcpProcess(): Promise<ChildProcess> {
 
   const possiblePaths = [
     path.join(__dirname, "../../mcp-server"),
-    path.join(__dirname, "../mcp-server"),
     path.join(__dirname, "../../../mcp-server"),
   ];
 
