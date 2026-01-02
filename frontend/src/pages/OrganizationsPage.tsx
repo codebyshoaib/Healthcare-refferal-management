@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { X, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const ORG_TYPES = [
   "clinic",
@@ -387,9 +388,20 @@ export default function OrganizationsPage() {
                         <CardContent className="pt-6">
                           <div className="flex justify-between items-start mb-2">
                             <strong className="text-lg">{o.name}</strong>
-                            <span className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded">
-                              {o.type} • {o.role}
-                            </span>
+                            <div className="flex gap-2">
+                              <Badge
+                                variant="outline"
+                                className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded"
+                              >
+                                {o.type}
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className="text-sm text-muted-foreground bg-muted px-2 py-1 rounded"
+                              >
+                                {o.role}
+                              </Badge>
+                            </div>
                           </div>
                           {(o.contact_info?.email || o.contact_info?.phone) && (
                             <div className="text-sm text-muted-foreground mb-2 flex flex-col">
