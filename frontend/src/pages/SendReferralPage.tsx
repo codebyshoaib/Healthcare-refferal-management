@@ -5,6 +5,8 @@ import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
+import { Card } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -12,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import { suggestOrganizations } from "../services/api";
 
 export default function SendReferralPage() {
   const navigate = useNavigate();
@@ -29,7 +32,11 @@ export default function SendReferralPage() {
   const [receiverOrgId, setReceiverOrgId] = useState("");
   const [patientName, setPatientName] = useState("");
   const [insuranceNumber, setInsuranceNumber] = useState("");
+  const [patientZipCode, setPatientZipCode] = useState("");
   const [notes, setNotes] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
     if (organizations.length === 0) fetchOrganizations();
@@ -49,6 +56,34 @@ export default function SendReferralPage() {
       ),
     [organizations]
   );
+
+  const handleGetSuggestions = async () => {
+    if (!patientZipCode || patientZipCode.length < 3) {
+      return;
+    }
+
+    setLoadingSuggestions(true);
+    setShowSuggestions(true);
+    try {
+      const selectedSender = organizations.find((o) => o.id === senderOrgId);
+      const res = await suggestOrganizations({
+        patient_zip_code: patientZipCode,
+        organization_type: selectedSender?.type,
+        sender_org_id: senderOrgId || undefined,
+      });
+      setSuggestions(res.data.suggestions || []);
+    } catch (err) {
+      console.error("Error getting suggestions:", err);
+      setSuggestions([]);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const handleSelectSuggestion = (orgId: string) => {
+    setReceiverOrgId(orgId);
+    setShowSuggestions(false);
+  };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -156,6 +191,36 @@ export default function SendReferralPage() {
             />
           </div>
           <div className="space-y-2">
+            <label htmlFor="patientZipCode" className="text-sm font-medium">
+              Patient Zip Code
+            </label>
+            <div className="flex gap-2">
+              <Input
+                value={patientZipCode}
+                onChange={(e) => setPatientZipCode(e.target.value)}
+                placeholder="e.g., 90210"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                onClick={handleGetSuggestions}
+                disabled={
+                  loadingSuggestions ||
+                  !patientZipCode ||
+                  patientZipCode.length < 3
+                }
+                variant="outline"
+                className="p-4"
+              >
+                {loadingSuggestions ? "Loading..." : "Get MCP Suggestions"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Get MCP Suggestions for the best organization to send this
+              referral to
+            </p>
+          </div>
+          <div className="space-y-2">
             <label htmlFor="notes" className="text-sm font-medium">
               Notes
             </label>
@@ -180,6 +245,72 @@ export default function SendReferralPage() {
           </Button>
         </div>
       </form>
+
+      {showSuggestions && suggestions.length > 0 && (
+        <Card className="p-6 mt-6">
+          <h4 className="text-lg font-semibold mb-4">
+            Suggestions (Top {suggestions.length})
+          </h4>
+          <div className="space-y-3">
+            {suggestions.map((suggestion) => (
+              <Card
+                key={suggestion.organization.id}
+                className="p-4 cursor-pointer hover:bg-accent transition-colors"
+                onClick={() =>
+                  handleSelectSuggestion(suggestion.organization.id)
+                }
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h5 className="font-medium">
+                        {suggestion.organization.name}
+                      </h5>
+                      <Badge variant="outline">
+                        {suggestion.organization.type}
+                      </Badge>
+                      <Badge variant="secondary">
+                        Match: {suggestion.match_score}/100
+                      </Badge>
+                    </div>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      {suggestion.reasons.map((reason: string, i: number) => (
+                        <li key={i}>• {reason}</li>
+                      ))}
+                    </ul>
+                    {suggestion.acceptance_stats.total_referrals > 0 && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Acceptance Rate:{" "}
+                        {suggestion.acceptance_stats.acceptance_rate}% | Total
+                        Referrals: {suggestion.acceptance_stats.total_referrals}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectSuggestion(suggestion.organization.id);
+                    }}
+                  >
+                    Select
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {showSuggestions && suggestions.length === 0 && !loadingSuggestions && (
+        <Card className="p-6 mt-6">
+          <p className="text-muted-foreground">
+            No organizations found covering zip code {patientZipCode}. Try a
+            different zip code.
+          </p>
+        </Card>
+      )}
     </div>
   );
 }

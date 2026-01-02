@@ -62,8 +62,6 @@ export default function CoveragePage() {
 
   const [stateFilter, setStateFilter] = useState<string | undefined>(undefined);
   const [countyFilter, setCountyFilter] = useState("");
-  const [cityFilter, setCityFilter] = useState("");
-  const [zipCodeFilter, setZipCodeFilter] = useState("");
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -139,19 +137,15 @@ export default function CoveragePage() {
   const filtered = useMemo(() => {
     const s = stateFilter?.trim().toLowerCase();
     const co = countyFilter.trim().toLowerCase();
-    const ci = cityFilter.trim().toLowerCase();
-    const z = zipCodeFilter.trim().toLowerCase();
 
     return rows.filter((r) => {
       const a = r.area;
       const okState = !s || (a.state || "").toLowerCase() === s;
       const okCounty = !co || (a.county || "").toLowerCase().includes(co);
-      const okCity = !ci || (a.city || "").toLowerCase().includes(ci);
-      const okZip = !z || (a.zip_code || "").toLowerCase().includes(z);
 
-      return okState && okCounty && okCity && okZip;
+      return okState && okCounty;
     });
-  }, [rows, stateFilter, countyFilter, cityFilter, zipCodeFilter]);
+  }, [rows, stateFilter, countyFilter]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -163,13 +157,11 @@ export default function CoveragePage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [stateFilter, countyFilter, cityFilter, zipCodeFilter]);
+  }, [stateFilter, countyFilter]);
 
   const clearFilters = () => {
     setStateFilter(undefined);
     setCountyFilter("");
-    setCityFilter("");
-    setZipCodeFilter("");
     setCurrentPage(1);
   };
 
@@ -210,75 +202,17 @@ export default function CoveragePage() {
           </Button>
         </Alert>
       )}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-          <CardDescription>
-            Filter organizations by coverage location
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <Select
-              value={stateFilter || undefined}
-              onValueChange={(value) =>
-                setStateFilter(value === "all" ? undefined : value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select State" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All States</SelectItem>
-                {uniqueStates.map((state) => (
-                  <SelectItem key={state} value={state.toLowerCase()}>
-                    {state}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input
-              value={countyFilter}
-              onChange={(e) => setCountyFilter(e.target.value)}
-              placeholder="County"
-              className="w-full"
-            />
-            <Input
-              value={cityFilter}
-              onChange={(e) => setCityFilter(e.target.value)}
-              placeholder="City"
-              className="w-full"
-            />
-            <Input
-              value={zipCodeFilter}
-              onChange={(e) => setZipCodeFilter(e.target.value)}
-              placeholder="Zip Code"
-              className="w-full"
-            />
-          </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                onClick={clearFilters}
-                className="p-5"
-              >
-                Clear Filters
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
       <Card>
         <CardHeader className="flex flex-row justify-between gap-2">
           <div className="flex flex-col gap-2">
-            <CardTitle>Coverage Areas</CardTitle>
+            <CardTitle>All Coverage Areas</CardTitle>
             <CardDescription>
               Showing <b>{paginatedFiltered.length}</b> of <b>{rows.length}</b>{" "}
               coverage entries
             </CardDescription>
           </div>
+
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">View:</span>
             <div className="flex border rounded-md">
@@ -303,7 +237,41 @@ export default function CoveragePage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-4 pb-4 border-b">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Filter by Location:</span>
+              <div className="w-48">
+                <Select
+                  value={stateFilter || undefined}
+                  onValueChange={(value) =>
+                    setStateFilter(value === "all" ? undefined : value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select State" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All States</SelectItem>
+                    {uniqueStates.map((state) => (
+                      <SelectItem key={state} value={state.toLowerCase()}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Input
+                value={countyFilter}
+                onChange={(e) => setCountyFilter(e.target.value)}
+                placeholder="County (optional)"
+                className="w-48"
+              />
+              <Button variant="secondary" onClick={clearFilters} size="sm">
+                Clear Filters
+              </Button>
+            </div>
+          </div>
           {showSpinner ? (
             <div className="flex justify-center items-center h-40">
               <Loader2 className="w-6 h-6 animate-spin text-gray-500" />

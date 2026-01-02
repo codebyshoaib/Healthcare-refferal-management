@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 
 import organizationsRoutes from "./routes/organizations.routes.js";
 import referralsRoutes from "./routes/referrals.routes.js";
+import mcpRoutes from "./routes/mcp.routes.js";
 import { auth } from "./middleware/auth.js";
 
 dotenv.config();
@@ -25,6 +26,7 @@ app.get("/", (req, res) => {
 app.use("/api/", auth);
 app.use("/api/organizations", organizationsRoutes);
 app.use("/api/referrals", referralsRoutes);
+app.use("/api/mcp", mcpRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` });

@@ -82,4 +82,10 @@ export const updateReferralStatus = (
   status: "accepted" | "rejected" | "completed"
 ) => api.patch(`/referrals/${id}/status`, { status });
 
+export const suggestOrganizations = (params: {
+  patient_zip_code: string;
+  organization_type?: string;
+  sender_org_id?: string;
+}) => api.get("/mcp/suggest", { params });
+
 export default api;
