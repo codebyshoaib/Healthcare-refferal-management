@@ -1,6 +1,7 @@
 import { spawn, ChildProcess } from "child_process";
 import path from "path";
 import { fileURLToPath } from "url";
+import { existsSync } from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,10 +24,50 @@ async function ensureMcpProcess(): Promise<ChildProcess> {
       initialized = false;
     }
   }
+  const possiblePaths = [
+    path.join(__dirname, "../mcp-server"),
+    path.join(__dirname, "../../../mcp-server"),
+  ];
 
-  const mcpServerDir = path.join(__dirname, "../../../mcp-server");
+  let mcpServerDir: string | null = null;
+  for (const possiblePath of possiblePaths) {
+    if (existsSync(possiblePath)) {
+      mcpServerDir = possiblePath;
+      break;
+    }
+  }
 
-  mcpProcess = spawn("npx", ["tsx", "src/server.ts"], {
+  if (!mcpServerDir) {
+    console.error(
+      `[MCP Client] MCP server directory not found. Tried: ${possiblePaths.join(
+        ", "
+      )}`
+    );
+    throw new Error(
+      `MCP server directory not found. Tried: ${possiblePaths.join(", ")}`
+    );
+  }
+
+  console.log(`[MCP Client] Using MCP server directory: ${mcpServerDir}`);
+
+  const isProduction = process.env.NODE_ENV === "production";
+
+  const distPath = path.join(mcpServerDir, "dist", "server.js");
+  const useCompiled = isProduction && existsSync(distPath);
+
+  const mcpCommand = useCompiled ? "node" : "npx";
+  const mcpArgs = useCompiled ? ["dist/server.js"] : ["tsx", "src/server.ts"];
+
+  console.log(
+    `[MCP Client] Starting MCP server: ${mcpCommand} ${mcpArgs.join(" ")}`
+  );
+  if (isProduction && !useCompiled) {
+    console.warn(
+      `[MCP Client] Production mode but dist/server.js not found, using tsx instead`
+    );
+  }
+
+  mcpProcess = spawn(mcpCommand, mcpArgs, {
     cwd: mcpServerDir,
     stdio: ["pipe", "pipe", "pipe"],
     shell: true,
@@ -73,8 +114,14 @@ async function ensureMcpProcess(): Promise<ChildProcess> {
 
   mcpProcess.stderr?.on("data", (data: Buffer) => {
     const output = data.toString();
-    if (output.includes("Error") || output.includes("Failed")) {
-      console.error("[MCP Server Error]:", output.trim());
+
+    if (
+      output.includes("Error") ||
+      output.includes("Failed") ||
+      output.includes("Initializing") ||
+      output.includes("Database connection")
+    ) {
+      console.log("[MCP Server]:", output.trim());
     }
   });
 
@@ -91,7 +138,18 @@ async function ensureMcpProcess(): Promise<ChildProcess> {
   });
 
   mcpProcess.on("error", (error) => {
-    console.error("MCP server process error:", error);
+    console.error("[MCP Client] Failed to start MCP server process:", error);
+    console.error("[MCP Client] Error details:", {
+      message: error.message,
+      code: (error as any).code,
+      path: mcpServerDir,
+      command: mcpCommand,
+      args: mcpArgs,
+    });
+    pendingRequests.forEach(({ reject }) => {
+      reject(new Error(`MCP server process error: ${error.message}`));
+    });
+    pendingRequests.clear();
     mcpProcess = null;
     initialized = false;
   });

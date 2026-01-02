@@ -10,10 +10,41 @@ import { auth } from "./middleware/auth.js";
 dotenv.config();
 
 const app = express();
+
+// CORS configuration
+const allowedOrigins = [
+  process.env.FRONTEND_URL, // From environment variable
+  "https://healthcare-refferal-management.vercel.app", // Production Vercel
+  "http://localhost:5173", // Vite dev server
+  "http://localhost:3000", // Local frontend
+].filter(Boolean) as string[]; // Remove undefined values
+
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+      
+      // Check if origin is in allowed list
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else if (
+        // Allow Vercel preview deployments (e.g., healthcare-refferal-management-*.vercel.app)
+        origin.endsWith(".vercel.app")
+      ) {
+        callback(null, true);
+      } else {
+        // In development, allow all origins
+        if (process.env.NODE_ENV !== "production") {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json());
